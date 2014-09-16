@@ -214,8 +214,23 @@ class MockWSTest extends FunSuite with Matchers {
       }
     }
 
-    val wsResponse = await( ws.url("/").withHeaders(CONTENT_TYPE -> "hello/world").get)
+    val wsResponse = await(ws.url("/").withHeaders(CONTENT_TYPE -> "hello/world").get)
     wsResponse.status shouldEqual OK
     wsResponse.body shouldEqual "hello/world"
+  }
+
+  test("mock WS supports adding query parameters via the withQueryString method") {
+    val ws = MockWS {
+      case (GET, "/url?a=1&b=2&c=3") => Action {
+        Ok("success")
+      }
+    }
+
+    val requestHolder = ws.url("/url")
+      .withQueryString("a" -> "1", "b" -> "2")
+      .withQueryString("c" -> "3")
+    val wsResponse = await(requestHolder.get())
+    wsResponse.status shouldEqual OK
+    wsResponse.body shouldEqual "success"
   }
 }
