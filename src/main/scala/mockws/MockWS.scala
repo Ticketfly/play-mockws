@@ -167,15 +167,17 @@ case class MockWS(withRoutes: MockWS.Routes) extends WSClient with Mockito {
     }
     given (ws.withQueryString(any)) will new Answer[WSRequestHolder] {
       override def answer(invocation: InvocationOnMock): WSRequestHolder = {
-        for (arg <- invocation.getArguments) {
-          val queryParams = arg.asInstanceOf[Seq[(String, String)]].map {
-            case (param, value) => s"$param=$value"
+        if (invocation.getArguments.length != 0) {
+          for (arg <- invocation.getArguments) {
+            val queryParams = arg.asInstanceOf[Seq[(String, String)]].map {
+              case (param, value) => s"$param=$value"
+            }
+            val queryString = queryParams.mkString("&")
+            if (currentUrl.contains("?"))
+              currentUrl = s"$currentUrl&$queryString"
+            else
+              currentUrl = s"$currentUrl?$queryString"
           }
-          val queryString = queryParams.mkString("&")
-          if (currentUrl.contains("?"))
-            currentUrl = s"$currentUrl&$queryString"
-          else
-            currentUrl = s"$currentUrl?$queryString"
         }
         ws
       }
